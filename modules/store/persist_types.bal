@@ -339,6 +339,7 @@ public type OrganizationWithRelations record {|
     IdentityProviderOptionalized[] identityProvider?;
     SubscriptionOptionalized[] subscriptions?;
     OrgImagesOptionalized[] orgImages?;
+    SubscriptionPlanOptionalized[] subscriptionplan?;
 |};
 
 public type OrganizationTargetType typedesc<OrganizationWithRelations>;
@@ -421,7 +422,6 @@ public type ApplicationPropertiesUpdate record {|
 public type SubscriptionPlanMapping record {|
     readonly string mappingId;
     string subscriptionplanSubscriptionPlanID;
-    string subscriptionplanOrgId;
     string apimetadataApiId;
     string apimetadataOrgId;
 |};
@@ -429,7 +429,6 @@ public type SubscriptionPlanMapping record {|
 public type SubscriptionPlanMappingOptionalized record {|
     string mappingId?;
     string subscriptionplanSubscriptionPlanID?;
-    string subscriptionplanOrgId?;
     string apimetadataApiId?;
     string apimetadataOrgId?;
 |};
@@ -446,7 +445,6 @@ public type SubscriptionPlanMappingInsert SubscriptionPlanMapping;
 
 public type SubscriptionPlanMappingUpdate record {|
     string subscriptionplanSubscriptionPlanID?;
-    string subscriptionplanOrgId?;
     string apimetadataApiId?;
     string apimetadataOrgId?;
 |};
@@ -456,8 +454,8 @@ public type SubscriptionPlan record {|
     string policyName;
     string displayName;
     string description;
-    readonly string orgId;
 
+    string organizationOrgId;
 |};
 
 public type SubscriptionPlanOptionalized record {|
@@ -465,13 +463,14 @@ public type SubscriptionPlanOptionalized record {|
     string policyName?;
     string displayName?;
     string description?;
-    string orgId?;
+    string organizationOrgId?;
 |};
 
 public type SubscriptionPlanWithRelations record {|
     *SubscriptionPlanOptionalized;
     SubscriptionPlanMappingOptionalized[] apis?;
     SubscriptionOptionalized subscription?;
+    OrganizationOptionalized organization?;
 |};
 
 public type SubscriptionPlanTargetType typedesc<SubscriptionPlanWithRelations>;
@@ -482,6 +481,7 @@ public type SubscriptionPlanUpdate record {|
     string policyName?;
     string displayName?;
     string description?;
+    string organizationOrgId?;
 |};
 
 public type Subscription record {|
@@ -489,7 +489,6 @@ public type Subscription record {|
     string userName;
     string organizationOrgId;
     string subscriptionplanSubscriptionPlanID;
-    string subscriptionplanOrgId;
     string apimetadataApiId;
     string apimetadataOrgId;
 |};
@@ -499,7 +498,6 @@ public type SubscriptionOptionalized record {|
     string userName?;
     string organizationOrgId?;
     string subscriptionplanSubscriptionPlanID?;
-    string subscriptionplanOrgId?;
     string apimetadataApiId?;
     string apimetadataOrgId?;
 |};
@@ -519,7 +517,6 @@ public type SubscriptionUpdate record {|
     string userName?;
     string organizationOrgId?;
     string subscriptionplanSubscriptionPlanID?;
-    string subscriptionplanOrgId?;
     string apimetadataApiId?;
     string apimetadataOrgId?;
 |};

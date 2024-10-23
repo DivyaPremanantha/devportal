@@ -224,6 +224,7 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
 
     check addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
     check addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
+    error? ap = check addSubscriptionPlanMapping(apiMetaData.SubscriptionPlans ?: [], apiID, orgId);
 
     if (listResult.length() == 0) {
         return error("API creation failed");
@@ -640,18 +641,40 @@ public function getIdentityProviders(string orgName) returns store:IdentityProvi
     return idpList;
 }
 
-public function addSubscriptionPlan(models:SubscriptionPlan subscriptionPlan, string orgId) returns string|error {
+public function addSubscriptionPlanMapping(string[] subscriptionPlanList, string apiId, string orgId) returns error? {
 
+    log:printInfo("subscriptionPlans.toString()");
+
+    stream<store:SubscriptionPlan, persist:Error?> subscriptionPlans = dbClient->/subscriptionplans.get();
+
+    log:printInfo("subscriptionPlans.toString()");
+
+    foreach var plan in subscriptionPlanList {
+        store:SubscriptionPlan[] subscriptionPlan = check from var subPlan in subscriptionPlans
+            where subPlan.policyName == plan
+            select subPlan;
+        log:printInfo(subscriptionPlan.toString());
+        if (subscriptionPlan[0].subscriptionPlanID != "") {
+            store:SubscriptionPlanMappingInsert mapping = {
+                mappingId: uuid:createType1AsString(),
+                subscriptionplanSubscriptionPlanID: subscriptionPlan[0].subscriptionPlanID,
+                apimetadataApiId: apiId,
+                apimetadataOrgId: orgId
+            };
+        string[] listResult = check dbClient->/subscriptionplanmappings.post([mapping]);
+        }
+    }
+}
+
+public function addSubscriptionPlan(models:SubscriptionPlan subscriptionPlan, string orgId) returns string|error {
     store:SubscriptionPlanInsert plan = {
         subscriptionPlanID: uuid:createType1AsString(),
         policyName: subscriptionPlan.policyName,
         displayName: subscriptionPlan.displayName,
         description: subscriptionPlan.description,
-        orgId: orgId
+        organizationOrgId: orgId
     };
-    log:printInfo("Adding identity provider");
-    log:printInfo( plan.toString());
-
-    [string, string][] listResult = check dbClient->/subscriptionplans.post([plan]);
+    log:printInfo(plan.toString());
+    string[] listResult = check dbClient->/subscriptionplans.post([plan]);
     return plan.subscriptionPlanID;
 }

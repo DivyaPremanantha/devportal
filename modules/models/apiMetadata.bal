@@ -62,17 +62,22 @@ public type ApiMetadata record {
     ThrottlingPolicy[] throttlingPolicies?;
     #Subscription[] subscriptions;
     ServerUrl serverUrl;
+    string[] SubscriptionPlans?;
 };
 
 public type ApiMetadataResponse record {
     ApiInfoResponse apiInfo;
     ThrottlingPolicy[]? throttlingPolicies;
     ServerUrl serverUrl;
-    SubscriptionPlanMapping[] subscriptionPlans;
+    string[] subscriptionPlans?;
 };
 
 public type SubscriptionPlanMapping record {|
     readonly string mappingId;
-    SubscriptionPlan subscriptionPlanId;
-    ApiMetadata apimetadata;
+    string subscriptionPlanID;
+    string apiId;
+|};
+
+public type SubscriptionPlanMappingResponse record {|
+    string subscriptionPlanID;
 |};

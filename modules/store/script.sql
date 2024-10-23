@@ -59,9 +59,11 @@ CREATE TABLE "SubscriptionPlan" (
 	"policyName" VARCHAR(191) NOT NULL,
 	"displayName" VARCHAR(191) NOT NULL,
 	"description" VARCHAR(191) NOT NULL,
-	"orgId" VARCHAR(191) NOT NULL,
-	PRIMARY KEY("subscriptionPlanID","orgId")
+	"organizationOrgId" VARCHAR(191) NOT NULL,
+	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
+	PRIMARY KEY("subscriptionPlanID")
 );
+
 
 CREATE TABLE "OrgImages" (
 	"fileName" VARCHAR(191) NOT NULL,
@@ -75,8 +77,8 @@ CREATE TABLE "ThrottlingPolicy" (
 	"policyId" VARCHAR(191) NOT NULL,
 	"type" VARCHAR(191) NOT NULL,
 	"policyName" VARCHAR(191) NOT NULL,
-	"description" VARCHAR(191) NOT NULL,
-	"apimetadataApiId" VARCHAR(191) NOT NULL,
+		"description" VARCHAR(191) NOT NULL,
+		"apimetadataApiId" VARCHAR(191) NOT NULL,
 	"apimetadataOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
 	PRIMARY KEY("policyId")
@@ -97,10 +99,8 @@ CREATE TABLE "Subscription" (
 	"userName" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	"subscriptionplanSubscriptionPlanID" VARCHAR(191) NOT NULL,
-	"subscriptionplanOrgId" VARCHAR(191) NOT NULL,
-	UNIQUE ("subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId"),
-	FOREIGN KEY("subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId") REFERENCES "SubscriptionPlan"("subscriptionPlanID", "orgId"),
+	"subscriptionplanSubscriptionPlanID" VARCHAR(191) UNIQUE NOT NULL,
+	FOREIGN KEY("subscriptionplanSubscriptionPlanID") REFERENCES "SubscriptionPlan"("subscriptionPlanID"),
 	"apimetadataApiId" VARCHAR(191) NOT NULL,
 	"apimetadataOrgId" VARCHAR(191) NOT NULL,
 	UNIQUE ("apimetadataApiId", "apimetadataOrgId"),
@@ -148,8 +148,7 @@ CREATE TABLE "ApplicationProperties" (
 CREATE TABLE "SubscriptionPlanMapping" (
 	"mappingId" VARCHAR(191) NOT NULL,
 	"subscriptionplanSubscriptionPlanID" VARCHAR(191) NOT NULL,
-	"subscriptionplanOrgId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId") REFERENCES "SubscriptionPlan"("subscriptionPlanID", "orgId"),
+	FOREIGN KEY("subscriptionplanSubscriptionPlanID") REFERENCES "SubscriptionPlan"("subscriptionPlanID"),
 	"apimetadataApiId" VARCHAR(191) NOT NULL,
 	"apimetadataOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),

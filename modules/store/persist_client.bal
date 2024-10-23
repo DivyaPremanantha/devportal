@@ -101,14 +101,12 @@ public isolated client class Client {
                 "apiImages[].image": {relation: {entityName: "apiImages", refField: "image"}},
                 "subscriptionPlans[].mappingId": {relation: {entityName: "subscriptionPlans", refField: "mappingId"}},
                 "subscriptionPlans[].subscriptionplanSubscriptionPlanID": {relation: {entityName: "subscriptionPlans", refField: "subscriptionplanSubscriptionPlanID"}},
-                "subscriptionPlans[].subscriptionplanOrgId": {relation: {entityName: "subscriptionPlans", refField: "subscriptionplanOrgId"}},
                 "subscriptionPlans[].apimetadataApiId": {relation: {entityName: "subscriptionPlans", refField: "apimetadataApiId"}},
                 "subscriptionPlans[].apimetadataOrgId": {relation: {entityName: "subscriptionPlans", refField: "apimetadataOrgId"}},
                 "subscription.subscriptionId": {relation: {entityName: "subscription", refField: "subscriptionId"}},
                 "subscription.userName": {relation: {entityName: "subscription", refField: "userName"}},
                 "subscription.organizationOrgId": {relation: {entityName: "subscription", refField: "organizationOrgId"}},
                 "subscription.subscriptionplanSubscriptionPlanID": {relation: {entityName: "subscription", refField: "subscriptionplanSubscriptionPlanID"}},
-                "subscription.subscriptionplanOrgId": {relation: {entityName: "subscription", refField: "subscriptionplanOrgId"}},
                 "subscription.apimetadataApiId": {relation: {entityName: "subscription", refField: "apimetadataApiId"}},
                 "subscription.apimetadataOrgId": {relation: {entityName: "subscription", refField: "apimetadataOrgId"}}
             },
@@ -293,19 +291,24 @@ public isolated client class Client {
                 "subscriptions[].userName": {relation: {entityName: "subscriptions", refField: "userName"}},
                 "subscriptions[].organizationOrgId": {relation: {entityName: "subscriptions", refField: "organizationOrgId"}},
                 "subscriptions[].subscriptionplanSubscriptionPlanID": {relation: {entityName: "subscriptions", refField: "subscriptionplanSubscriptionPlanID"}},
-                "subscriptions[].subscriptionplanOrgId": {relation: {entityName: "subscriptions", refField: "subscriptionplanOrgId"}},
                 "subscriptions[].apimetadataApiId": {relation: {entityName: "subscriptions", refField: "apimetadataApiId"}},
                 "subscriptions[].apimetadataOrgId": {relation: {entityName: "subscriptions", refField: "apimetadataOrgId"}},
                 "orgImages[].orgId": {relation: {entityName: "orgImages", refField: "orgId"}},
                 "orgImages[].fileName": {relation: {entityName: "orgImages", refField: "fileName"}},
-                "orgImages[].image": {relation: {entityName: "orgImages", refField: "image"}}
+                "orgImages[].image": {relation: {entityName: "orgImages", refField: "image"}},
+                "subscriptionplan[].subscriptionPlanID": {relation: {entityName: "subscriptionplan", refField: "subscriptionPlanID"}},
+                "subscriptionplan[].policyName": {relation: {entityName: "subscriptionplan", refField: "policyName"}},
+                "subscriptionplan[].displayName": {relation: {entityName: "subscriptionplan", refField: "displayName"}},
+                "subscriptionplan[].description": {relation: {entityName: "subscriptionplan", refField: "description"}},
+                "subscriptionplan[].organizationOrgId": {relation: {entityName: "subscriptionplan", refField: "organizationOrgId"}}
             },
             keyFields: ["orgId"],
             joinMetadata: {
                 organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 identityProvider: {entity: IdentityProvider, fieldName: "identityProvider", refTable: "IdentityProvider", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
-                orgImages: {entity: OrgImages, fieldName: "orgImages", refTable: "OrgImages", refColumns: ["orgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
+                orgImages: {entity: OrgImages, fieldName: "orgImages", refTable: "OrgImages", refColumns: ["orgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
+                subscriptionplan: {entity: SubscriptionPlan, fieldName: "subscriptionplan", refTable: "SubscriptionPlan", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
             }
         },
         [ORGANIZATION_ASSETS]: {
@@ -352,14 +355,13 @@ public isolated client class Client {
             fieldMetadata: {
                 mappingId: {columnName: "mappingId"},
                 subscriptionplanSubscriptionPlanID: {columnName: "subscriptionplanSubscriptionPlanID"},
-                subscriptionplanOrgId: {columnName: "subscriptionplanOrgId"},
                 apimetadataApiId: {columnName: "apimetadataApiId"},
                 apimetadataOrgId: {columnName: "apimetadataOrgId"},
                 "subscriptionPlan.subscriptionPlanID": {relation: {entityName: "subscriptionPlan", refField: "subscriptionPlanID"}},
                 "subscriptionPlan.policyName": {relation: {entityName: "subscriptionPlan", refField: "policyName"}},
                 "subscriptionPlan.displayName": {relation: {entityName: "subscriptionPlan", refField: "displayName"}},
                 "subscriptionPlan.description": {relation: {entityName: "subscriptionPlan", refField: "description"}},
-                "subscriptionPlan.orgId": {relation: {entityName: "subscriptionPlan", refField: "orgId"}},
+                "subscriptionPlan.organizationOrgId": {relation: {entityName: "subscriptionPlan", refField: "organizationOrgId"}},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
@@ -389,24 +391,27 @@ public isolated client class Client {
                 policyName: {columnName: "policyName"},
                 displayName: {columnName: "displayName"},
                 description: {columnName: "description"},
-                orgId: {columnName: "orgId"},
+                organizationOrgId: {columnName: "organizationOrgId"},
                 "apis[].mappingId": {relation: {entityName: "apis", refField: "mappingId"}},
                 "apis[].subscriptionplanSubscriptionPlanID": {relation: {entityName: "apis", refField: "subscriptionplanSubscriptionPlanID"}},
-                "apis[].subscriptionplanOrgId": {relation: {entityName: "apis", refField: "subscriptionplanOrgId"}},
                 "apis[].apimetadataApiId": {relation: {entityName: "apis", refField: "apimetadataApiId"}},
                 "apis[].apimetadataOrgId": {relation: {entityName: "apis", refField: "apimetadataOrgId"}},
                 "subscription.subscriptionId": {relation: {entityName: "subscription", refField: "subscriptionId"}},
                 "subscription.userName": {relation: {entityName: "subscription", refField: "userName"}},
                 "subscription.organizationOrgId": {relation: {entityName: "subscription", refField: "organizationOrgId"}},
                 "subscription.subscriptionplanSubscriptionPlanID": {relation: {entityName: "subscription", refField: "subscriptionplanSubscriptionPlanID"}},
-                "subscription.subscriptionplanOrgId": {relation: {entityName: "subscription", refField: "subscriptionplanOrgId"}},
                 "subscription.apimetadataApiId": {relation: {entityName: "subscription", refField: "apimetadataApiId"}},
-                "subscription.apimetadataOrgId": {relation: {entityName: "subscription", refField: "apimetadataOrgId"}}
+                "subscription.apimetadataOrgId": {relation: {entityName: "subscription", refField: "apimetadataOrgId"}},
+                "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
+                "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
+                "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
+                "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
-            keyFields: ["subscriptionPlanID", "orgId"],
+            keyFields: ["subscriptionPlanID"],
             joinMetadata: {
-                apis: {entity: SubscriptionPlanMapping, fieldName: "apis", refTable: "SubscriptionPlanMapping", refColumns: ["subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId"], joinColumns: ["subscriptionPlanID", "orgId"], 'type: psql:MANY_TO_ONE},
-                subscription: {entity: Subscription, fieldName: "subscription", refTable: "Subscription", refColumns: ["subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId"], joinColumns: ["subscriptionPlanID", "orgId"], 'type: psql:ONE_TO_ONE}
+                apis: {entity: SubscriptionPlanMapping, fieldName: "apis", refTable: "SubscriptionPlanMapping", refColumns: ["subscriptionplanSubscriptionPlanID"], joinColumns: ["subscriptionPlanID"], 'type: psql:MANY_TO_ONE},
+                subscription: {entity: Subscription, fieldName: "subscription", refTable: "Subscription", refColumns: ["subscriptionplanSubscriptionPlanID"], joinColumns: ["subscriptionPlanID"], 'type: psql:ONE_TO_ONE},
+                organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}
             }
         },
         [SUBSCRIPTION]: {
@@ -417,7 +422,6 @@ public isolated client class Client {
                 userName: {columnName: "userName"},
                 organizationOrgId: {columnName: "organizationOrgId"},
                 subscriptionplanSubscriptionPlanID: {columnName: "subscriptionplanSubscriptionPlanID"},
-                subscriptionplanOrgId: {columnName: "subscriptionplanOrgId"},
                 apimetadataApiId: {columnName: "apimetadataApiId"},
                 apimetadataOrgId: {columnName: "apimetadataOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
@@ -428,7 +432,7 @@ public isolated client class Client {
                 "subscriptionPlan.policyName": {relation: {entityName: "subscriptionPlan", refField: "policyName"}},
                 "subscriptionPlan.displayName": {relation: {entityName: "subscriptionPlan", refField: "displayName"}},
                 "subscriptionPlan.description": {relation: {entityName: "subscriptionPlan", refField: "description"}},
-                "subscriptionPlan.orgId": {relation: {entityName: "subscriptionPlan", refField: "orgId"}},
+                "subscriptionPlan.organizationOrgId": {relation: {entityName: "subscriptionPlan", refField: "organizationOrgId"}},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
@@ -950,37 +954,37 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get subscriptionplans/[string subscriptionPlanID]/[string orgId](SubscriptionPlanTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get subscriptionplans/[string subscriptionPlanID](SubscriptionPlanTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
-    isolated resource function post subscriptionplans(SubscriptionPlanInsert[] data) returns [string, string][]|persist:Error {
+    isolated resource function post subscriptionplans(SubscriptionPlanInsert[] data) returns string[]|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(SUBSCRIPTION_PLAN);
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from SubscriptionPlanInsert inserted in data
-            select [inserted.subscriptionPlanID, inserted.orgId];
+            select inserted.subscriptionPlanID;
     }
 
-    isolated resource function put subscriptionplans/[string subscriptionPlanID]/[string orgId](SubscriptionPlanUpdate value) returns SubscriptionPlan|persist:Error {
+    isolated resource function put subscriptionplans/[string subscriptionPlanID](SubscriptionPlanUpdate value) returns SubscriptionPlan|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(SUBSCRIPTION_PLAN);
         }
-        _ = check sqlClient.runUpdateQuery({"subscriptionPlanID": subscriptionPlanID, "orgId": orgId}, value);
-        return self->/subscriptionplans/[subscriptionPlanID]/[orgId].get();
+        _ = check sqlClient.runUpdateQuery(subscriptionPlanID, value);
+        return self->/subscriptionplans/[subscriptionPlanID].get();
     }
 
-    isolated resource function delete subscriptionplans/[string subscriptionPlanID]/[string orgId]() returns SubscriptionPlan|persist:Error {
-        SubscriptionPlan result = check self->/subscriptionplans/[subscriptionPlanID]/[orgId].get();
+    isolated resource function delete subscriptionplans/[string subscriptionPlanID]() returns SubscriptionPlan|persist:Error {
+        SubscriptionPlan result = check self->/subscriptionplans/[subscriptionPlanID].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(SUBSCRIPTION_PLAN);
         }
-        _ = check sqlClient.runDeleteQuery({"subscriptionPlanID": subscriptionPlanID, "orgId": orgId});
+        _ = check sqlClient.runDeleteQuery(subscriptionPlanID);
         return result;
     }
 

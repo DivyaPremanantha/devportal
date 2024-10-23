@@ -150,6 +150,7 @@ public type Organization record {|
     IdentityProvider[] identityProvider;
     Subscription[] subscriptions;
     OrgImages[] orgImages;
+	SubscriptionPlan[] subscriptionplan;
 |};
 
 
@@ -191,9 +192,9 @@ public type SubscriptionPlan record {|
     string policyName;
     string displayName;
     string description;
-    readonly string orgId;
     SubscriptionPlanMapping[] apis;
 	Subscription? subscription;
+    Organization organization;
 |};
 
 public type Subscription record {|
