@@ -105,27 +105,3 @@ public distinct service class ConsumerReviewResponse {
 
 }
 
-public distinct service class SubscriptionResponse {
-
-    private final readonly & APISubscription subscription;
-
-    public function init(APISubscription entryRecord) {
-        self.subscription = entryRecord.cloneReadOnly();
-    }
-
-    resource function get subscribedAPIs() returns string {
-        return self.subscription.apiId;
-    }
-
-    resource function get orgId() returns string {
-        return self.subscription.orgId;
-    }
-
-    resource function get userId() returns string {
-        return self.subscription.userId;
-    }
-
-    resource function get subscriptionId() returns string {
-        return self.subscription.subscriptionId;
-    }
-}

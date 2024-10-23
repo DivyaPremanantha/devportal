@@ -5,18 +5,17 @@
 
 DROP TABLE IF EXISTS "OrganizationAssets";
 DROP TABLE IF EXISTS "ApiImages";
-DROP TABLE IF EXISTS "Review";
-DROP TABLE IF EXISTS "Subscription";
-DROP TABLE IF EXISTS "User";
+DROP TABLE IF EXISTS "SubscriptionPlanMapping";
 DROP TABLE IF EXISTS "ApplicationProperties";
 DROP TABLE IF EXISTS "IdentityProvider";
 DROP TABLE IF EXISTS "AdditionalProperties";
+DROP TABLE IF EXISTS "Subscription";
 DROP TABLE IF EXISTS "ApiContent";
 DROP TABLE IF EXISTS "ThrottlingPolicy";
 DROP TABLE IF EXISTS "OrgImages";
+DROP TABLE IF EXISTS "SubscriptionPlan";
 DROP TABLE IF EXISTS "Organization";
 DROP TABLE IF EXISTS "ApiMetadata";
-DROP TABLE IF EXISTS "RateLimitingPolicy";
 DROP TABLE IF EXISTS "Application";
 
 CREATE TABLE "Application" (
@@ -27,13 +26,6 @@ CREATE TABLE "Application" (
 	"addedAPIs" VARCHAR(191) NOT NULL,
 	"idpId" VARCHAR(191) NOT NULL,
 	PRIMARY KEY("appId")
-);
-
-CREATE TABLE "RateLimitingPolicy" (
-	"policyId" VARCHAR(191) NOT NULL,
-	"policyName" VARCHAR(191) NOT NULL,
-	"policyInfo" VARCHAR(191) NOT NULL,
-	PRIMARY KEY("policyId")
 );
 
 CREATE TABLE "ApiMetadata" (
@@ -60,6 +52,15 @@ CREATE TABLE "Organization" (
 	"isPublic" BOOLEAN NOT NULL,
 	"authenticatedPages" VARCHAR(191) NOT NULL,
 	PRIMARY KEY("orgId")
+);
+
+CREATE TABLE "SubscriptionPlan" (
+	"subscriptionPlanID" VARCHAR(191) NOT NULL,
+	"policyName" VARCHAR(191) NOT NULL,
+	"displayName" VARCHAR(191) NOT NULL,
+	"description" VARCHAR(191) NOT NULL,
+	"orgId" VARCHAR(191) NOT NULL,
+	PRIMARY KEY("subscriptionPlanID","orgId")
 );
 
 CREATE TABLE "OrgImages" (
@@ -89,6 +90,22 @@ CREATE TABLE "ApiContent" (
 	"apimetadataOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
 	PRIMARY KEY("apiContentId")
+);
+
+CREATE TABLE "Subscription" (
+	"subscriptionId" VARCHAR(191) NOT NULL,
+	"userName" VARCHAR(191) NOT NULL,
+	"organizationOrgId" VARCHAR(191) NOT NULL,
+	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
+	"subscriptionplanSubscriptionPlanID" VARCHAR(191) NOT NULL,
+	"subscriptionplanOrgId" VARCHAR(191) NOT NULL,
+	UNIQUE ("subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId"),
+	FOREIGN KEY("subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId") REFERENCES "SubscriptionPlan"("subscriptionPlanID", "orgId"),
+	"apimetadataApiId" VARCHAR(191) NOT NULL,
+	"apimetadataOrgId" VARCHAR(191) NOT NULL,
+	UNIQUE ("apimetadataApiId", "apimetadataOrgId"),
+	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
+	PRIMARY KEY("subscriptionId")
 );
 
 CREATE TABLE "AdditionalProperties" (
@@ -128,39 +145,15 @@ CREATE TABLE "ApplicationProperties" (
 	PRIMARY KEY("propertyId")
 );
 
-CREATE TABLE "User" (
-	"userId" VARCHAR(191) NOT NULL,
-	"role" VARCHAR(191) NOT NULL,
-	"userName" VARCHAR(191) NOT NULL,
-	"applicationAppId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("applicationAppId") REFERENCES "Application"("appId"),
-	PRIMARY KEY("userId")
-);
-
-CREATE TABLE "Subscription" (
-	"subscriptionId" VARCHAR(191) NOT NULL,
-	"apiApiId" VARCHAR(191) NOT NULL,
-	"apiOrgId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("apiApiId", "apiOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
-	"userUserId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("userUserId") REFERENCES "User"("userId"),
-	"organizationOrgId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	"subscriptionPolicyId" VARCHAR(191) UNIQUE NOT NULL,
-	FOREIGN KEY("subscriptionPolicyId") REFERENCES "ThrottlingPolicy"("policyId"),
-	PRIMARY KEY("subscriptionId")
-);
-
-CREATE TABLE "Review" (
-	"reviewId" VARCHAR(191) NOT NULL,
-	"rating" INT NOT NULL,
-	"comment" VARCHAR(191) NOT NULL,
-	"apifeedbackApiId" VARCHAR(191) NOT NULL,
-	"apifeedbackOrgId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("apifeedbackApiId", "apifeedbackOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
-	"reviewedbyUserId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("reviewedbyUserId") REFERENCES "User"("userId"),
-	PRIMARY KEY("reviewId")
+CREATE TABLE "SubscriptionPlanMapping" (
+	"mappingId" VARCHAR(191) NOT NULL,
+	"subscriptionplanSubscriptionPlanID" VARCHAR(191) NOT NULL,
+	"subscriptionplanOrgId" VARCHAR(191) NOT NULL,
+	FOREIGN KEY("subscriptionplanSubscriptionPlanID", "subscriptionplanOrgId") REFERENCES "SubscriptionPlan"("subscriptionPlanID", "orgId"),
+	"apimetadataApiId" VARCHAR(191) NOT NULL,
+	"apimetadataOrgId" VARCHAR(191) NOT NULL,
+	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
+	PRIMARY KEY("mappingId")
 );
 
 CREATE TABLE "ApiImages" (

@@ -135,7 +135,6 @@ service /apiMetadata on new http:Listener(9090) {
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
         store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
         store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
-        store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
         models:APIReview[] reviews = [];
@@ -147,18 +146,6 @@ service /apiMetadata on new http:Listener(9090) {
                 'category: policy.'type ?: ""
             };
             throttlingPolicies.push(policyData);
-        }
-
-        foreach var review in apiReviews {
-            models:APIReview reviewData = {
-                apiRating: review.rating ?: 0,
-                apiComment: review.comment ?: "",
-                apiReviewer: review.reviewedbyUserId ?: "",
-                reviewId: review.reviewId ?: "",
-                apiName: "",
-                apiID: review.apifeedbackApiId ?: ""
-            };
-            reviews.push(reviewData);
         }
 
         map<string> properties = {};
@@ -245,7 +232,6 @@ service /apiMetadata on new http:Listener(9090) {
             store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
             store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
             store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
-            store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
 
             models:ThrottlingPolicy[] throttlingPolicies = [];
             models:APIReview[] reviews = [];
@@ -257,18 +243,6 @@ service /apiMetadata on new http:Listener(9090) {
                     'category: policy.'type ?: ""
                 };
                 throttlingPolicies.push(policyData);
-            }
-
-            foreach var review in apiReviews {
-                models:APIReview reviewData = {
-                    apiRating: review.rating ?: 0,
-                    apiComment: review.comment ?: "",
-                    apiReviewer: review.reviewedbyUserId ?: "",
-                    reviewId: review.reviewId ?: "",
-                    apiName: "",
-                    apiID: review.apifeedbackApiId ?: ""
-                };
-                reviews.push(reviewData);
             }
 
             map<string> properties = {};

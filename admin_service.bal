@@ -388,5 +388,20 @@ service /admin on new http:Listener(8080) {
         }
         return idps;
     }
+
+    resource function post organisations/[string orgId]/subscriptionPlans(@http:Payload models:SubscriptionPlan subscriptionPlan) returns models:SubscriptionPlanResponse|error {
+
+        
+        string planId = check utils:addSubscriptionPlan(subscriptionPlan, orgId);
+        models:SubscriptionPlanResponse plan = {
+            subscriptionPlanID: planId,
+            policyName: subscriptionPlan.policyName,
+            displayName: subscriptionPlan.displayName,
+            description: subscriptionPlan.description,
+            orgId: orgId 
+        };
+
+        return plan;
+    }
 }
 

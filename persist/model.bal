@@ -13,32 +13,6 @@ public type ThrottlingPolicy record {|
     string policyName;
     string description;
     ApiMetadata apimetadata;
-    Subscription? subscription;
-|};
-
-# Description.
-# + policyId - field description 
-# + policyName - field description  
-# + policyInfo - field description
-public type RateLimitingPolicy record {|
-    readonly string policyId;
-    string policyName;
-    string policyInfo;
-|};
-
-# Description.
-#
-# + reviewId - field description  
-# + rating - field description  
-# + comment - field description  
-# + apiFeedback - field description  
-# + reviewedBy - field description
-public type Review record {|
-    readonly string reviewId;
-    int rating;
-    string comment;
-    ApiMetadata apiFeedback;
-    User reviewedBy;
 |};
 
 # Description.
@@ -78,11 +52,11 @@ public type ApiMetadata record {|
     ThrottlingPolicy[] throttlingPolicies;
     string productionUrl;
     string sandboxUrl;
-    Review[] reviews;
-    Subscription[] subscriptions;
     ApiContent[] apiContent;
     ApiImages[] apiImages;
     string? authorizedRoles;
+    SubscriptionPlanMapping[] subscriptionPlans;
+	Subscription? subscription;
 |};
 
 
@@ -163,7 +137,7 @@ public type Application record {|
     string productionKey;
     ApplicationProperties[] appProperties;
     string addedAPIs;
-    User[] accessControl;
+    string userName;
     string idpId;
 |};
 
@@ -205,20 +179,29 @@ public type ApplicationProperties record {|
     Application application;
 |};
 
-public type User record {|
-    readonly string userId;
-    string role;
-    string userName;
-    Application application;
-    Review[] reviews;
-    Subscription[] subscriptions;
+
+public type SubscriptionPlanMapping record {|
+    readonly string mappingId;
+    SubscriptionPlan subscriptionPlan;
+    ApiMetadata apimetadata;
+|};
+
+public type SubscriptionPlan record {|
+    readonly string subscriptionPlanID;
+    string policyName;
+    string displayName;
+    string description;
+    readonly string orgId;
+    SubscriptionPlanMapping[] apis;
+	Subscription? subscription;
 |};
 
 public type Subscription record {|
     readonly string subscriptionId;
-    ApiMetadata api;
-    User user;
-    Organization organization;
-    ThrottlingPolicy subscriptionPolicy;
+    string userName;
+	Organization organization;
+    SubscriptionPlan subscriptionPlan;
+    ApiMetadata apimetadata;
 |};
+
 

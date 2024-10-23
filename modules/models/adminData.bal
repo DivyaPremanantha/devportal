@@ -131,6 +131,33 @@ public type IdentityProviderResponse record {
     string logoutRedirectURI;
 };
 
+public type SubscriptionPlanMappingResponse record {|
+    readonly string mappingId;
+    SubscriptionPlanResponse subscriptionPlan;
+    ApiMetadata apimetadata;
+|};
+
+public type SubscriptionPlan record {|
+    string policyName;
+    string displayName;
+    string description;
+|};
+
+public type SubscriptionPlanResponse record {|
+    readonly string subscriptionPlanID;
+    string policyName;
+    string displayName;
+    string description;
+    string orgId;
+|};
+
+public type SubscriptionResponse record {|
+    readonly string subscriptionId;
+    string userName;
+	Organization organization;
+    SubscriptionPlanResponse subscriptionPlan;
+    ApiMetadata apimetadata;
+|};
 
 
 

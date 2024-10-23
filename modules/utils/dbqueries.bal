@@ -640,3 +640,19 @@ public function getIdentityProviders(string orgName) returns store:IdentityProvi
         select idp;
     return idpList;
 }
+
+public function addSubscriptionPlan(models:SubscriptionPlan subscriptionPlan, string orgId) returns string|error {
+
+    store:SubscriptionPlanInsert plan = {
+        subscriptionPlanID: uuid:createType1AsString(),
+        policyName: subscriptionPlan.policyName,
+        displayName: subscriptionPlan.displayName,
+        description: subscriptionPlan.description,
+        orgId: orgId
+    };
+    log:printInfo("Adding identity provider");
+    log:printInfo( plan.toString());
+
+    [string, string][] listResult = check dbClient->/subscriptionplans.post([plan]);
+    return plan.subscriptionPlanID;
+}

@@ -5,7 +5,7 @@
 
 [ballerina]
 dependencies-toml-version = "2"
-distribution-version = "2201.9.0-20240419-152500-bd530dd2"
+distribution-version = "2201.9.0"
 
 [[package]]
 org = "ballerina"
@@ -76,7 +76,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.11.3"
+version = "2.11.5"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -296,7 +296,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "sql"
-version = "1.13.2"
+version = "1.13.3"
 dependencies = [
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "jballerina.java"},
