@@ -28,19 +28,9 @@ public type ApiInfoResponse record {
     string apiVersion;
     string apiType;
     string[] authorizedRoles?;
-    APIReview[] reviews?;
     map<string> additionalProperties;
     ApiArtifactsResponse apiArtifacts;
 };
-
-public type APIReview record {|
-    readonly string reviewId;
-    string apiComment;
-    int apiRating;
-    string apiReviewer;
-    string apiID;
-    string apiName;
-|};
 
 # Description.
 #
@@ -51,15 +41,6 @@ public type ThrottlingPolicy record {
     string 'category?;
     string policyName;
     string description;
-};
-
-# Description.
-#
-# + policyName - field description  
-# + policyInfo - field description
-public type RateLimitingPolicy record {
-    string policyName;
-    string policyInfo;
 };
 
 # Description.
@@ -87,6 +68,11 @@ public type ApiMetadataResponse record {
     ApiInfoResponse apiInfo;
     ThrottlingPolicy[]? throttlingPolicies;
     ServerUrl serverUrl;
+    SubscriptionPlanMapping[] subscriptionPlans;
 };
 
-
+public type SubscriptionPlanMapping record {|
+    readonly string mappingId;
+    SubscriptionPlan subscriptionPlanId;
+    ApiMetadata apimetadata;
+|};

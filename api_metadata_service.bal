@@ -137,7 +137,6 @@ service /apiMetadata on new http:Listener(9090) {
         store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
-        models:APIReview[] reviews = [];
 
         foreach var policy in policies {
             models:ThrottlingPolicy policyData = {
@@ -178,7 +177,6 @@ service /apiMetadata on new http:Listener(9090) {
                 apiCategory: apiMetaData.apiCategory ?: "",
                 tags: regex:split(apiMetaData?.tags ?: "", " "),
                 additionalProperties: properties,
-                reviews: reviews,
                 orgName: apiMetaData.organizationName ?: "",
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
                 apiVersion: apiMetaData.apiVersion ?: "",
@@ -234,7 +232,6 @@ service /apiMetadata on new http:Listener(9090) {
             store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
 
             models:ThrottlingPolicy[] throttlingPolicies = [];
-            models:APIReview[] reviews = [];
 
             foreach var policy in policies {
                 models:ThrottlingPolicy policyData = {
@@ -274,7 +271,6 @@ service /apiMetadata on new http:Listener(9090) {
                     apiCategory: apiMetaData.apiCategory ?: "",
                     tags: regex:split(apiMetaData?.tags ?: "", " "),
                     additionalProperties: properties,
-                    reviews: reviews,
                     orgName: apiMetaData.organizationName ?: "",
                     apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
                     apiVersion: apiMetaData.apiVersion ?: "",

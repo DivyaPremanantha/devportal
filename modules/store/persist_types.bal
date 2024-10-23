@@ -55,6 +55,7 @@ public type ApiMetadata record {|
     string sandboxUrl;
 
     string? authorizedRoles;
+
 |};
 
 public type ApiMetadataOptionalized record {|

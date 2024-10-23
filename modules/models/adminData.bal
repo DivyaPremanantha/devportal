@@ -131,12 +131,6 @@ public type IdentityProviderResponse record {
     string logoutRedirectURI;
 };
 
-public type SubscriptionPlanMappingResponse record {|
-    readonly string mappingId;
-    SubscriptionPlanResponse subscriptionPlan;
-    ApiMetadata apimetadata;
-|};
-
 public type SubscriptionPlan record {|
     string policyName;
     string displayName;
