@@ -411,7 +411,7 @@ public function updateApiImagePath(map<string> images, string apiID, string orgN
     foreach var propertyKey in images.keys() {
         stream<store:ApiImages, persist:Error?> storedImages = dbClient->/apiimages.get();
         store:ApiImages[] retriedImage = check from var apiImage in storedImages
-            where apiImage.orgId == orgId && apiImage.imageTag == propertyKey
+            where apiImage.orgId == orgId && apiImage.imagePath == <string>images.get(propertyKey) && apiImage.apiId == apiID
             select apiImage;
         if (retriedImage.length() != 0) {
             store:ApiImages|persist:Error apiImages = dbClient->/apiimages/[propertyKey]/[apiID]/[orgId].put(
@@ -432,7 +432,6 @@ public function updateApiImagePath(map<string> images, string apiID, string orgN
                 orgId: orgId,
                 image: []
             });
-
             if (apiImagesRecord.length() != 0) {
                 do {
                     string[][] contentResults = check dbClient->/apiimages.post(apiImagesRecord);

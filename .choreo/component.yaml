@@ -1,0 +1,34 @@
+# +required Version of the endpoint configuration YAML
+schemaVersion: 1.0
+
+# +required List of endpoints to create
+endpoints:
+  - name: admin-endpoint
+    # +optional Display name for the endpoint.
+    displayName: admin-endpoint
+    # +required Service section has the user service endpoint details
+    service:
+      # +optional Base path of the API that gets exposed via the endpoint.
+      # This is mandatory if the endpoint type is set to REST, GraphQL or WS.
+      basePath: /admin
+      # +required Numeric port value that gets exposed via the endpoint
+      port: 8080
+    # +required Type of traffic that the endpoint is accepting.
+    # Allowed values: REST, GraphQL, GRPC, TCP, UDP, WS.
+    type: REST
+    networkVisibilities: 
+      - Public
+    # +optional Path to the schema definition file. Defaults to wild card route if not provided
+    # This is only applicable to REST endpoint types.
+    # The path should be relative to the nodeJS project directory.
+    schemaFilePath: admin_openapi.yaml
+  - name: api-metadata-endpoint
+    service:
+      # +optional Base path of the API that gets exposed via the endpoint.
+      # This is mandatory if the endpoint type is set to REST, GraphQL or WS.
+      basePath: /apiMetadata
+      # +required Numeric port value that gets exposed via the endpoint
+      port: 9090
+    type: REST
+    networkVisibility: Public
+    schemaFilePath: apiMetadata_openapi.yaml

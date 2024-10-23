@@ -165,7 +165,6 @@ service /apiMetadata on new http:Listener(9090) {
             apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
         }
 
-
         models:ApiMetadataResponse metaData = {
             serverUrl: {
                 sandboxUrl: apiMetaData.sandboxUrl ?: "",
@@ -289,7 +288,7 @@ service /apiMetadata on new http:Listener(9090) {
         string apiId = check utils:getAPIId(orgName, apiName);
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        
+
         string tmpDir = check file:createTempDir();
         string path = tmpDir + "/tmp";
         string targetPath = tmpDir + "/" + orgName;
@@ -297,7 +296,7 @@ service /apiMetadata on new http:Listener(9090) {
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] directories = check file:readDir(targetPath+ "/" + apiName + "/content");
+        file:MetaData[] directories = check file:readDir(targetPath + "/" + apiName + "/content");
 
         models:APIAssets[] apiAssets = [];
         apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
@@ -314,29 +313,29 @@ service /apiMetadata on new http:Listener(9090) {
 
         log:printInfo("APIAssets removed ".'join(apiAssets.length().toString()));
 
-        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
-
-        boolean dirExists = check file:test("./" + orgName + "/" + apiName + "/images", file:EXISTS);
+        boolean dirExists = check file:test(targetPath + "/" + apiName + "/images", file:EXISTS);
 
         if (dirExists) {
-            check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
-            file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
-
+            file:MetaData[] imageDir = check file:readDir(targetPath + "/" + apiName + "/images");
             models:APIImages[] apiImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-                imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
-                if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                imageName = regex:split(imageName, "/images/")[1];
+                if (!imageName.equalsIgnoreCaseAscii("/images/.DS_Store")) {
+                    string relativePath = check file:relativePath(file:getCurrentDir(), file.absPath);
                     apiImages.push({
-                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                        imageName: imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length()),
+                        image: check io:fileReadBytes(relativePath),
+                        imageName: imageName,
                         imageTag: ""
                     }
                     );
                 }
             }
             if (storage.equalsIgnoreCaseAscii("DB")) {
-                _ = check utils:updateApiImages(apiImages, apiId, orgName);
+                string|error apiImagesResult = utils:updateApiImages(apiImages, apiId, orgName);
+                if apiImagesResult is error {
+                    log:printError(apiImagesResult.toString());
+                }
             } else {
                 check utils:pushContentS3(imageDir, "text/plain");
             }
@@ -360,11 +359,11 @@ service /apiMetadata on new http:Listener(9090) {
         byte[] binaryPayload = check request.getBinaryPayload();
         string tmpDir = check file:createTempDir();
         string path = tmpDir + "/tmp";
-        string targetPath = tmpDir + "/" + orgName ;
+        string targetPath = tmpDir + "/" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] directories = check file:readDir(targetPath+ "/" + apiName + "/content");
+        file:MetaData[] directories = check file:readDir(targetPath + "/" + apiName + "/content");
 
         models:APIAssets[] apiAssets = [];
         apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
@@ -376,20 +375,17 @@ service /apiMetadata on new http:Listener(9090) {
                 models:APIAssets remove = apiAssets.remove(index);
             }
         }
-        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
-        boolean dirExists = check file:test("/" + orgName + "/" + apiName + "/images", file:EXISTS);
-
+        boolean dirExists = check file:test(targetPath + "/" + apiName + "/images", file:EXISTS);
         if (dirExists) {
-            check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
-            file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
-
+            file:MetaData[] imageDir = check file:readDir(targetPath + "/" + apiName + "/images");
             models:APIImages[] apiImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-                imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
-                if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                imageName = regex:split(imageName, "/images/")[1];
+                if (!imageName.equalsIgnoreCaseAscii("/images/.DS_Store")) {
+                    string relativePath = check file:relativePath(file:getCurrentDir(), file.absPath);
                     apiImages.push({
-                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        image: check io:fileReadBytes(relativePath),
                         imageName: imageName,
                         imageTag: ""
                     }
@@ -406,7 +402,6 @@ service /apiMetadata on new http:Listener(9090) {
             }
         }
 
-        check file:remove(orgName, file:RECURSIVE);
         string|error? apiContent = utils:updateApiContent(apiAssets, apiId, orgName);
         if apiContent is error {
             log:printError(apiContent.toString());

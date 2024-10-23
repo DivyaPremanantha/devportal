@@ -218,22 +218,20 @@ service /admin on new http:Listener(8080) {
         models:APIAssets[] apiAssets = [];
         apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
 
-        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
-
-        boolean dirExists = check file:test("./" + orgName + "/" + apiName + "/images", file:EXISTS);
+        boolean dirExists = check file:test(targetPath + "/" + apiName + "/images", file:EXISTS);
 
         if (dirExists) {
-            check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
-            file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+            file:MetaData[] imageDir = check file:readDir(targetPath + "/" + apiName + "/images");
 
             models:APIImages[] apiImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-                imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
-                if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                imageName = regex:split(imageName, "/images/")[1];
+                if (!imageName.equalsIgnoreCaseAscii("/images/.DS_Store")) {
+                    string relativePath = check file:relativePath(file:getCurrentDir(), file.absPath);
                     apiImages.push({
-                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                        imageName: imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length()),
+                        image: check io:fileReadBytes(relativePath),
+                        imageName: imageName,
                         imageTag: ""
                     }
                     );

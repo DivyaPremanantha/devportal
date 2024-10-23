@@ -89,6 +89,7 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
             _ = check readAPIContent(meta, orgname, apiID, apiAssets);
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+            log:printInfo(relativePath);
             string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
             if (relativePath.endsWith("md") || relativePath.endsWith("hbs")) {
                 models:APIAssets assetMapping = {
