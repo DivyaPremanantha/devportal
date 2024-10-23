@@ -384,6 +384,8 @@ components:
       - callbackURL
       - clientId
       - issuer
+      - logoutRedirectURI
+      - logoutURL
       - scope
       - signUpURL
       - tokenURL
@@ -406,6 +408,10 @@ components:
           type: string
         signUpURL:
           type: string
+        logoutURL:
+          type: string
+        logoutRedirectURI:
+          type: string
       description: Identity Provider configured for dev portal.
     IdentityProviderResponse:
       required:
@@ -414,6 +420,8 @@ components:
       - clientId
       - id
       - issuer
+      - logoutRedirectURI
+      - logoutURL
       - orgName
       - scope
       - signUpURL
@@ -440,6 +448,10 @@ components:
         scope:
           type: string
         signUpURL:
+          type: string
+        logoutURL:
+          type: string
+        logoutRedirectURI:
           type: string
       description: Response for IdentityProvider creaton.
     OrgCreationResponse:
@@ -478,6 +490,7 @@ components:
     OrganizationAssets:
       required:
       - filePath
+      - orgAssetId
       - orgName
       - organizationOrgId
       - pageContent
@@ -485,6 +498,8 @@ components:
       - pageType
       type: object
       properties:
+        orgAssetId:
+          type: string
         pageName:
           type: string
         orgName:
