@@ -232,6 +232,10 @@ service /apiMetadata on new http:Listener(9090) {
         //     where api.orgId == orgId
         //     select api;
 
+        // store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
+        // store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
+        // store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
+        // store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
         stream<store:ApiMetadata, persist:Error?> apiMetaDataList = adminClient->/apimetadata.get();
 
         store:ApiMetadata[] apiList = check from var api in apiMetaDataList
@@ -241,16 +245,11 @@ service /apiMetadata on new http:Listener(9090) {
         models:ApiMetadataResponse[] apis = [];
         foreach var apiMetaData in apiList {
 
-            // store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
-            // store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
-            // store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
-            // store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
-
             stream<store:ThrottlingPolicyOptionalized, persist:Error?> policySet = adminClient->/throttlingpolicies.get();
             store:ThrottlingPolicyOptionalized[] policies = check from var policy in policySet
                 where policy.apimetadataApiId == apiMetaData.apiId
                 select policy;
-            
+
             stream<store:AdditionalPropertiesWithRelations, persist:Error?> propertySet = adminClient->/additionalproperties.get();
             store:AdditionalPropertiesWithRelations[] additionalProperties = check from var property in propertySet
                 where property.apiId == apiMetaData.apiId
@@ -271,8 +270,8 @@ service /apiMetadata on new http:Listener(9090) {
                 where subscriptionPlan.apimetadataApiId == apiMetaData.apiId
                 select subscriptionPlan;
 
-            string [] subscriptionPlans = [];
-            
+            string[] subscriptionPlans = [];
+
             foreach var subscriptionPlan in subscriptionPlanMappings {
                 subscriptionPlans.push(subscriptionPlan.subscriptionplanSubscriptionPlanID);
             }
