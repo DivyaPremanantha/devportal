@@ -135,8 +135,10 @@ service /apiMetadata on new http:Listener(9090) {
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
         store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
         store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
+        store:SubscriptionPlanMappingOptionalized[] plans = apiMetaData.subscriptionPlans ?: [];
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
+        string[] subscriptionPlans = [];
 
         foreach var policy in policies {
             models:ThrottlingPolicy policyData = {
@@ -165,6 +167,13 @@ service /apiMetadata on new http:Listener(9090) {
             apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
         }
 
+        foreach var plan in plans {
+            models:SubscriptionPlanMappingResponse planData = {
+                subscriptionPlanID: plan.subscriptionplanSubscriptionPlanID ?: ""
+            };
+            subscriptionPlans.push(planData.subscriptionPlanID);
+        }
+
         models:ApiMetadataResponse metaData = {
             serverUrl: {
                 sandboxUrl: apiMetaData.sandboxUrl ?: "",
@@ -182,7 +191,8 @@ service /apiMetadata on new http:Listener(9090) {
                 authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " "),
                 apiDescription: apiMetaData.apiDescription ?: "",
                 apiType: apiMetaData.apiType ?: ""
-            }
+            },
+            subscriptionPlans: subscriptionPlans
         };
         log:printInfo(apiMetaData?.authorizedRoles ?: "");
 
@@ -216,19 +226,56 @@ service /apiMetadata on new http:Listener(9090) {
 
         //retrieve the organization id
         string orgId = check utils:getOrgId(orgName);
-        stream<store:ApiMetadataWithRelations, persist:Error?> apiMetaDataList = adminClient->/apimetadata.get();
+        // stream<store:ApiMetadataWithRelations, persist:Error?> apiMetaDataList = adminClient->/apimetadata.get();
 
-        store:ApiMetadataWithRelations[] apiList = check from var api in apiMetaDataList
+        // store:ApiMetadataWithRelations[] apiList = check from var api in apiMetaDataList
+        //     where api.orgId == orgId
+        //     select api;
+
+        stream<store:ApiMetadata, persist:Error?> apiMetaDataList = adminClient->/apimetadata.get();
+
+        store:ApiMetadata[] apiList = check from var api in apiMetaDataList
             where api.orgId == orgId
             select api;
 
         models:ApiMetadataResponse[] apis = [];
         foreach var apiMetaData in apiList {
 
-            store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
-            store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
-            store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
-            store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
+            // store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
+            // store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
+            // store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
+            // store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
+
+            stream<store:ThrottlingPolicyOptionalized, persist:Error?> policySet = adminClient->/throttlingpolicies.get();
+            store:ThrottlingPolicyOptionalized[] policies = check from var policy in policySet
+                where policy.apimetadataApiId == apiMetaData.apiId
+                select policy;
+            
+            stream<store:AdditionalPropertiesWithRelations, persist:Error?> propertySet = adminClient->/additionalproperties.get();
+            store:AdditionalPropertiesWithRelations[] additionalProperties = check from var property in propertySet
+                where property.apiId == apiMetaData.apiId
+                select property;
+
+            stream<store:ApiContentOptionalized, persist:Error?> contentSet = adminClient->/apicontents.get();
+            store:ApiContentOptionalized[] apiContent = check from var content in contentSet
+                where content.apimetadataApiId == apiMetaData.apiId
+                select content;
+
+            stream<store:ApiImagesOptionalized, persist:Error?> apiImagesSet = adminClient->/apiimages.get();
+            store:ApiImagesOptionalized[] apiImages = check from var apiImage in apiImagesSet
+                where apiImage.apiId == apiMetaData.apiId
+                select apiImage;
+
+            stream<store:SubscriptionPlanMapping, persist:Error?> subscriptionPlanSet = adminClient->/subscriptionplanmappings.get();
+            store:SubscriptionPlanMapping[] subscriptionPlanMappings = check from var subscriptionPlan in subscriptionPlanSet
+                where subscriptionPlan.apimetadataApiId == apiMetaData.apiId
+                select subscriptionPlan;
+
+            string [] subscriptionPlans = [];
+            
+            foreach var subscriptionPlan in subscriptionPlanMappings {
+                subscriptionPlans.push(subscriptionPlan.subscriptionplanSubscriptionPlanID);
+            }
 
             models:ThrottlingPolicy[] throttlingPolicies = [];
 
@@ -261,22 +308,23 @@ service /apiMetadata on new http:Listener(9090) {
 
             models:ApiMetadataResponse metaData = {
                 serverUrl: {
-                    sandboxUrl: apiMetaData.sandboxUrl ?: "",
-                    productionUrl: apiMetaData.productionUrl ?: ""
+                    sandboxUrl: apiMetaData.sandboxUrl,
+                    productionUrl: apiMetaData.productionUrl
                 },
                 throttlingPolicies: throttlingPolicies,
                 apiInfo: {
-                    apiName: apiMetaData.apiName ?: "",
-                    apiCategory: apiMetaData.apiCategory ?: "",
-                    tags: regex:split(apiMetaData?.tags ?: "", " "),
+                    apiName: apiMetaData.apiName,
+                    apiCategory: apiMetaData.apiCategory,
+                    tags: regex:split(apiMetaData?.tags, " "),
                     additionalProperties: properties,
-                    orgName: apiMetaData.organizationName ?: "",
+                    orgName: apiMetaData.organizationName,
                     apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
-                    apiVersion: apiMetaData.apiVersion ?: "",
+                    apiVersion: apiMetaData.apiVersion,
                     authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " "),
-                    apiDescription: apiMetaData.apiDescription ?: "",
-                    apiType: apiMetaData.apiType ?: ""
-                }
+                    apiDescription: apiMetaData.apiDescription,
+                    apiType: apiMetaData.apiType
+                },
+                subscriptionPlans: subscriptionPlans
             };
             apis.push(metaData);
         }
