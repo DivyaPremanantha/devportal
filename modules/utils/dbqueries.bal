@@ -11,6 +11,7 @@ public function getOrgId(string orgName) returns string|error {
 
     stream<store:Organization, persist:Error?> organizations = check dbClient->/organizations.get();
 
+    log:printInfo(organizations.toString());
     //retrieve the organization id
     store:Organization[] organization = check from var org in organizations
         where org.organizationName == orgName
@@ -20,6 +21,7 @@ public function getOrgId(string orgName) returns string|error {
         return error("Organization not found");
     }
 
+    log:printInfo(organization.toString());
     return organization[0].orgId;
 
 }
@@ -87,7 +89,7 @@ public function createOrg(models:Organization organization) returns string|error
     string pages = string:'join(" ", ...authenticaedPages);
 
     store:OrganizationInsert org = {
-        orgId: uuid:createType1AsString(),
+        orgId: organization.orgName,
         organizationName: organization.orgName,
         isPublic: organization.isPublic,
         authenticatedPages: pages
@@ -224,7 +226,7 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
 
     check addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
     check addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
-    error? ap = check addSubscriptionPlanMapping(apiMetaData.SubscriptionPlans ?: [], apiID, orgId);
+    check addSubscriptionPlanMapping(apiMetaData.subscriptionPlans ?: [], apiID, orgId);
 
     if (listResult.length() == 0) {
         return error("API creation failed");
@@ -233,16 +235,18 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
 }
 
 public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, string orgName) returns string|error {
+    string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
 
     check addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
     check addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
+    check addSubscriptionPlanMapping(apiMetaData.subscriptionPlans ?: [], apiID, orgId);
+
     string roles = "";
     if (apiMetaData.apiInfo.hasKey("authorizedRoles")) {
 
         string[] authenticatedRoles = apiMetaData.apiInfo.authorizedRoles ?: [];
         roles = string:'join(" ", ...authenticatedRoles);
     }
-    string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadataUpdate metadataRecord = {
         apiName: apiMetaData.apiInfo.apiName,
         apiCategory: apiMetaData.apiInfo.apiCategory,
@@ -643,38 +647,59 @@ public function getIdentityProviders(string orgName) returns store:IdentityProvi
 
 public function addSubscriptionPlanMapping(string[] subscriptionPlanList, string apiId, string orgId) returns error? {
 
-    log:printInfo("subscriptionPlans.toString()");
-
     stream<store:SubscriptionPlan, persist:Error?> subscriptionPlans = dbClient->/subscriptionplans.get();
+    store:SubscriptionPlan[] subscriptionPlanSet = check from var subPlan in subscriptionPlans
+        where subPlan.organizationOrgId == orgId
+        select subPlan;
 
-    log:printInfo("subscriptionPlans.toString()");
-
+    store:SubscriptionPlanMappingInsert[] mappingRecords = [];
     foreach var plan in subscriptionPlanList {
-        store:SubscriptionPlan[] subscriptionPlan = check from var subPlan in subscriptionPlans
-            where subPlan.policyName == plan
-            select subPlan;
-        log:printInfo(subscriptionPlan.toString());
-        if (subscriptionPlan[0].subscriptionPlanID != "") {
-            store:SubscriptionPlanMappingInsert mapping = {
-                mappingId: uuid:createType1AsString(),
-                subscriptionplanSubscriptionPlanID: subscriptionPlan[0].subscriptionPlanID,
-                apimetadataApiId: apiId,
-                apimetadataOrgId: orgId
-            };
-        string[] listResult = check dbClient->/subscriptionplanmappings.post([mapping]);
+        foreach var subscriptionPlan in subscriptionPlanSet {
+            if subscriptionPlan.policyName == plan {
+                store:SubscriptionPlanMappingInsert mapping = {
+                    mappingId: uuid:createType1AsString(),
+                    subscriptionplanSubscriptionPlanID: subscriptionPlan.subscriptionPlanID,
+                    apimetadataApiId: apiId,
+                    apimetadataOrgId: orgId
+                };
+                mappingRecords.push(mapping);
+                
+            }
+        }
+    }
+
+    if (mappingRecords.length() != 0) {
+        do {
+            string[] propResults = check dbClient->/subscriptionplanmappings.post(mappingRecords);
+        } on fail var e {
+            log:printError("Error occurred while adding subscription mapping: " + e.message());
         }
     }
 }
 
 public function addSubscriptionPlan(models:SubscriptionPlan subscriptionPlan, string orgId) returns string|error {
     store:SubscriptionPlanInsert plan = {
-        subscriptionPlanID: uuid:createType1AsString(),
+        subscriptionPlanID: subscriptionPlan.policyName,
         policyName: subscriptionPlan.policyName,
         displayName: subscriptionPlan.displayName,
         description: subscriptionPlan.description,
+        amount: subscriptionPlan.amount,
         organizationOrgId: orgId
     };
     log:printInfo(plan.toString());
     string[] listResult = check dbClient->/subscriptionplans.post([plan]);
     return plan.subscriptionPlanID;
+}
+public function addSubscription(models:Subscription subscription, string orgId, string apiId) returns string|error {
+    store:SubscriptionInsert plan = {
+        subscriptionId: uuid:createType1AsString(),
+        apimetadataApiId: apiId,
+        apimetadataOrgId: orgId,
+        organizationOrgId: orgId,
+        subscriptionplanSubscriptionPlanID: subscription.subscriptionPlan,
+        userName: subscription.userName
+    };
+    log:printInfo(plan.toString());
+    string[] listResult = check dbClient->/subscriptions.post([plan]);
+    return plan.subscriptionId;
 }

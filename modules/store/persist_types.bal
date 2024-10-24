@@ -454,7 +454,7 @@ public type SubscriptionPlan record {|
     string policyName;
     string displayName;
     string description;
-
+    string amount;
     string organizationOrgId;
 |};
 
@@ -463,6 +463,7 @@ public type SubscriptionPlanOptionalized record {|
     string policyName?;
     string displayName?;
     string description?;
+    string amount?;
     string organizationOrgId?;
 |};
 
@@ -481,6 +482,7 @@ public type SubscriptionPlanUpdate record {|
     string policyName?;
     string displayName?;
     string description?;
+    string amount?;
     string organizationOrgId?;
 |};
 

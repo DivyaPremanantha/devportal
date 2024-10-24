@@ -34,7 +34,8 @@ service /apiMetadata on new http:Listener(9090) {
                 apiType: "",
                 additionalProperties: {},
                 apiArtifacts: {apiImages: {}}
-            }
+            },
+            subscriptionPlans: []
         };
         foreach var part in bodyParts {
             var mediaType = mime:getMediaType(part.getContentType());
@@ -130,15 +131,73 @@ service /apiMetadata on new http:Listener(9090) {
     resource function get api(string apiID, string orgName) returns models:ApiMetadataResponse|error {
 
         string orgId = check utils:getOrgId(orgName);
-        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
-        store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
-        store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
-        store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
-        store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
-        store:SubscriptionPlanMappingOptionalized[] plans = apiMetaData.subscriptionPlans ?: [];
+        store:ApiMetadata apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
+
+        // store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
+        // store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
+        // store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
+        // store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
+        // store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
+        // store:SubscriptionPlanMappingOptionalized[] plans = apiMetaData.subscriptionPlans ?: [];
+
+        stream<store:ThrottlingPolicyOptionalized, persist:Error?> policySet = adminClient->/throttlingpolicies.get();
+        store:ThrottlingPolicyOptionalized[] policies = check from var policy in policySet
+            where policy.apimetadataApiId == apiMetaData.apiId
+            select policy;
+
+        stream<store:AdditionalPropertiesWithRelations, persist:Error?> propertySet = adminClient->/additionalproperties.get();
+        store:AdditionalPropertiesWithRelations[] additionalProperties = check from var property in propertySet
+            where property.apiId == apiMetaData.apiId
+            select property;
+
+        stream<store:ApiContentOptionalized, persist:Error?> contentSet = adminClient->/apicontents.get();
+        store:ApiContentOptionalized[] apiContent = check from var content in contentSet
+            where content.apimetadataApiId == apiMetaData.apiId
+            select content;
+
+        stream<store:ApiImagesOptionalized, persist:Error?> apiImagesSet = adminClient->/apiimages.get();
+        store:ApiImagesOptionalized[] apiImages = check from var apiImage in apiImagesSet
+            where apiImage.apiId == apiMetaData.apiId
+            select apiImage;
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
-        string[] subscriptionPlans = [];
+
+        stream<store:SubscriptionPlanMapping, persist:Error?> planMappings = adminClient->/subscriptionplanmappings.get();
+            store:SubscriptionPlanMapping[] subscriptionPlanMappings = check from var mapping in planMappings
+                where mapping.apimetadataApiId == apiMetaData.apiId
+                select mapping;
+
+            store:SubscriptionPlan[] subscriptionPlanSet = [];
+            foreach var subscriptionPlanMapping in subscriptionPlanMappings {
+                stream<store:SubscriptionPlan, persist:Error?> plans = adminClient->/subscriptionplans.get();
+                store:SubscriptionPlan[] subscriptionPlans = check from var plan in plans
+                    where plan.subscriptionPlanID == subscriptionPlanMapping.subscriptionplanSubscriptionPlanID
+                    select plan;
+                subscriptionPlanSet.push(subscriptionPlans[0]);
+            }
+
+            models:SubscriptionPlan[] subPlans = [];
+            foreach var subscriptionPlan in subscriptionPlanSet {
+                stream<store:Subscription, persist:Error?> subcriptionSet = adminClient->/subscriptions.get();
+                store:Subscription[] subscriptions = check from var subcription in subcriptionSet
+                    where subcription.subscriptionplanSubscriptionPlanID == subscriptionPlan.subscriptionPlanID &&
+                    subcription.apimetadataApiId == apiMetaData.apiId
+                    select subcription;
+                string ststus = "Not Subscribed";
+
+                if (subscriptions.length() > 0) {
+                    ststus = "Subscribed";
+                }
+
+                models:SubscriptionPlan subPlan = {
+                    policyName: subscriptionPlan.policyName,
+                    displayName: subscriptionPlan.displayName,
+                    description: subscriptionPlan.description,
+                    amount: subscriptionPlan.amount,
+                    status: ststus
+                };
+                subPlans.push(subPlan);
+            }
 
         foreach var policy in policies {
             models:ThrottlingPolicy policyData = {
@@ -167,32 +226,25 @@ service /apiMetadata on new http:Listener(9090) {
             apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
         }
 
-        foreach var plan in plans {
-            models:SubscriptionPlanMappingResponse planData = {
-                subscriptionPlanID: plan.subscriptionplanSubscriptionPlanID ?: ""
-            };
-            subscriptionPlans.push(planData.subscriptionPlanID);
-        }
-
         models:ApiMetadataResponse metaData = {
             serverUrl: {
-                sandboxUrl: apiMetaData.sandboxUrl ?: "",
-                productionUrl: apiMetaData.productionUrl ?: ""
+                sandboxUrl: apiMetaData.sandboxUrl,
+                productionUrl: apiMetaData.productionUrl
             },
             throttlingPolicies: throttlingPolicies,
             apiInfo: {
-                apiName: apiMetaData.apiName ?: "",
-                apiCategory: apiMetaData.apiCategory ?: "",
-                tags: regex:split(apiMetaData?.tags ?: "", " "),
+                apiName: apiMetaData.apiName,
+                apiCategory: apiMetaData.apiCategory,
+                tags: regex:split(apiMetaData?.tags, " "),
                 additionalProperties: properties,
-                orgName: apiMetaData.organizationName ?: "",
+                orgName: apiMetaData.organizationName,
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
-                apiVersion: apiMetaData.apiVersion ?: "",
+                apiVersion: apiMetaData.apiVersion,
                 authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " "),
-                apiDescription: apiMetaData.apiDescription ?: "",
-                apiType: apiMetaData.apiType ?: ""
+                apiDescription: apiMetaData.apiDescription,
+                apiType: apiMetaData.apiType
             },
-            subscriptionPlans: subscriptionPlans
+            subscriptionPlans: subPlans
         };
         log:printInfo(apiMetaData?.authorizedRoles ?: "");
 
@@ -265,15 +317,42 @@ service /apiMetadata on new http:Listener(9090) {
                 where apiImage.apiId == apiMetaData.apiId
                 select apiImage;
 
-            stream<store:SubscriptionPlanMapping, persist:Error?> subscriptionPlanSet = adminClient->/subscriptionplanmappings.get();
-            store:SubscriptionPlanMapping[] subscriptionPlanMappings = check from var subscriptionPlan in subscriptionPlanSet
-                where subscriptionPlan.apimetadataApiId == apiMetaData.apiId
-                select subscriptionPlan;
+            stream<store:SubscriptionPlanMapping, persist:Error?> planMappings = adminClient->/subscriptionplanmappings.get();
+            store:SubscriptionPlanMapping[] subscriptionPlanMappings = check from var mapping in planMappings
+                where mapping.apimetadataApiId == apiMetaData.apiId
+                select mapping;
 
-            string[] subscriptionPlans = [];
+            store:SubscriptionPlan[] subscriptionPlanSet = [];
+            foreach var subscriptionPlanMapping in subscriptionPlanMappings {
+                stream<store:SubscriptionPlan, persist:Error?> plans = adminClient->/subscriptionplans.get();
+                store:SubscriptionPlan[] subscriptionPlans = check from var plan in plans
+                    where plan.subscriptionPlanID == subscriptionPlanMapping.subscriptionplanSubscriptionPlanID
+                    select plan;
 
-            foreach var subscriptionPlan in subscriptionPlanMappings {
-                subscriptionPlans.push(subscriptionPlan.subscriptionplanSubscriptionPlanID);
+                subscriptionPlanSet.push(subscriptionPlans[0]);
+            }
+
+            models:SubscriptionPlan[] subPlans = [];
+            foreach var subscriptionPlan in subscriptionPlanSet {
+                stream<store:Subscription, persist:Error?> subcriptionSet = adminClient->/subscriptions.get();
+                store:Subscription[] subscriptions = check from var subcription in subcriptionSet
+                    where subcription.subscriptionplanSubscriptionPlanID == subscriptionPlan.subscriptionPlanID &&
+                    subcription.apimetadataApiId == apiMetaData.apiId
+                    select subcription;
+                string ststus = "Not Subscribed";
+
+                if (subscriptions.length() > 0) {
+                    ststus = "Subscribed";
+                }
+
+                models:SubscriptionPlan subPlan = {
+                    policyName: subscriptionPlan.policyName,
+                    displayName: subscriptionPlan.displayName,
+                    description: subscriptionPlan.description,
+                    amount: subscriptionPlan.amount,
+                    status: ststus
+                };
+                subPlans.push(subPlan);
             }
 
             models:ThrottlingPolicy[] throttlingPolicies = [];
@@ -323,7 +402,7 @@ service /apiMetadata on new http:Listener(9090) {
                     apiDescription: apiMetaData.apiDescription,
                     apiType: apiMetaData.apiType
                 },
-                subscriptionPlans: subscriptionPlans
+                subscriptionPlans: subPlans
             };
             apis.push(metaData);
         }
@@ -490,6 +569,20 @@ service /apiMetadata on new http:Listener(9090) {
         response.setHeader("Content-Description", "File Transfer");
         response.setHeader("Transfer-Encoding", "chunked");
         return response;
+    }
+
+    resource function post organisations/[string orgId]/[string apiId]/subscriptions(@http:Payload models:Subscription subscriptionPlan) returns models:SubscriptionResponse|error {
+        
+        string planId = check utils:addSubscription(subscriptionPlan, orgId, apiId);
+        models:SubscriptionResponse plan = {
+            subscriptionId: planId,
+            orgId: orgId,
+            apiId: apiId,
+            subscriptionPlan: subscriptionPlan.subscriptionPlan,
+            userName: subscriptionPlan.userName 
+        };
+
+        return plan;
     }
 }
 

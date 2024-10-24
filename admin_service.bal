@@ -397,10 +397,12 @@ service /admin on new http:Listener(8080) {
             policyName: subscriptionPlan.policyName,
             displayName: subscriptionPlan.displayName,
             description: subscriptionPlan.description,
+            amount: subscriptionPlan.amount,
             orgId: orgId 
         };
 
         return plan;
     }
+
 }
 

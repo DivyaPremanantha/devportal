@@ -62,17 +62,4 @@ public type Review record {|
     string apiName;
 |};
 
-public type SubscriberOrganization record {|
-    readonly string orgId;
-    Organization publisherOrgId;
-    string publisherOrgName;
-    Subscription[] subscriptions;
-|};
-
-public type Subscription record {|
-    readonly string subscriptionId;
-    Organization producerOrg;
-    SubscriberOrganization subscrioberOrg;
-    ThrottlingPolicy subscriptionPolicy;
-|};
 

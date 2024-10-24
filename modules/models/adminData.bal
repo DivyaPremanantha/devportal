@@ -135,6 +135,8 @@ public type SubscriptionPlan record {|
     string policyName;
     string displayName;
     string description;
+    string amount;
+    string status;
 |};
 
 public type SubscriptionPlanResponse record {|
@@ -142,17 +144,22 @@ public type SubscriptionPlanResponse record {|
     string policyName;
     string displayName;
     string description;
+    string amount;
     string orgId;
 |};
 
 public type SubscriptionResponse record {|
     readonly string subscriptionId;
+    string orgId;
+    string apiId;
+    string subscriptionPlan;
     string userName;
-	Organization organization;
-    SubscriptionPlanResponse subscriptionPlan;
-    ApiMetadata apimetadata;
 |};
 
+public type Subscription record {|
+    string subscriptionPlan;
+    string userName;
+|};
 
 
 

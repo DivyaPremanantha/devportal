@@ -59,6 +59,7 @@ CREATE TABLE "SubscriptionPlan" (
 	"policyName" VARCHAR(191) NOT NULL,
 	"displayName" VARCHAR(191) NOT NULL,
 	"description" VARCHAR(191) NOT NULL,
+	"amount" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
 	PRIMARY KEY("subscriptionPlanID")
