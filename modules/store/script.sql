@@ -100,11 +100,10 @@ CREATE TABLE "Subscription" (
 	"userName" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	"subscriptionplanSubscriptionPlanID" VARCHAR(191) UNIQUE NOT NULL,
+	"subscriptionplanSubscriptionPlanID" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("subscriptionplanSubscriptionPlanID") REFERENCES "SubscriptionPlan"("subscriptionPlanID"),
 	"apimetadataApiId" VARCHAR(191) NOT NULL,
 	"apimetadataOrgId" VARCHAR(191) NOT NULL,
-	UNIQUE ("apimetadataApiId", "apimetadataOrgId"),
 	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
 	PRIMARY KEY("subscriptionId")
 );

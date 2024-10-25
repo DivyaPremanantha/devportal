@@ -69,7 +69,7 @@ public type ApiMetadataResponse record {
     ApiInfoResponse apiInfo;
     ThrottlingPolicy[]? throttlingPolicies;
     ServerUrl serverUrl;
-    SubscriptionPlan[] subscriptionPlans?;
+    APISubscriptionPlan[] subscriptionPlans?;
 };
 
 public type SubscriptionPlanMapping record {|

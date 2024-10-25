@@ -176,7 +176,7 @@ service /apiMetadata on new http:Listener(9090) {
                 subscriptionPlanSet.push(subscriptionPlans[0]);
             }
 
-            models:SubscriptionPlan[] subPlans = [];
+            models:APISubscriptionPlan[] subPlans = [];
             foreach var subscriptionPlan in subscriptionPlanSet {
                 stream<store:Subscription, persist:Error?> subcriptionSet = adminClient->/subscriptions.get();
                 store:Subscription[] subscriptions = check from var subcription in subcriptionSet
@@ -189,7 +189,7 @@ service /apiMetadata on new http:Listener(9090) {
                     ststus = "Subscribed";
                 }
 
-                models:SubscriptionPlan subPlan = {
+                models:APISubscriptionPlan subPlan = {
                     policyName: subscriptionPlan.policyName,
                     displayName: subscriptionPlan.displayName,
                     description: subscriptionPlan.description,
@@ -332,7 +332,7 @@ service /apiMetadata on new http:Listener(9090) {
                 subscriptionPlanSet.push(subscriptionPlans[0]);
             }
 
-            models:SubscriptionPlan[] subPlans = [];
+            models:APISubscriptionPlan[] subPlans = [];
             foreach var subscriptionPlan in subscriptionPlanSet {
                 stream<store:Subscription, persist:Error?> subcriptionSet = adminClient->/subscriptions.get();
                 store:Subscription[] subscriptions = check from var subcription in subcriptionSet
@@ -345,7 +345,7 @@ service /apiMetadata on new http:Listener(9090) {
                     ststus = "Subscribed";
                 }
 
-                models:SubscriptionPlan subPlan = {
+                models:APISubscriptionPlan subPlan = {
                     policyName: subscriptionPlan.policyName,
                     displayName: subscriptionPlan.displayName,
                     description: subscriptionPlan.description,
