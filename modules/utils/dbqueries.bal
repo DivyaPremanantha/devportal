@@ -703,3 +703,7 @@ public function addSubscription(models:Subscription subscription, string orgId, 
     string[] listResult = check dbClient->/subscriptions.post([plan]);
     return plan.subscriptionId;
 }
+public function deleteSubscription(string subId) returns string|error {
+    store:Subscription subscription = check dbClient->/subscriptions/[subId].delete();
+    return subscription.subscriptionId;
+}

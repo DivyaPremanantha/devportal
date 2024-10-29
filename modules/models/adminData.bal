@@ -152,6 +152,7 @@ public type APISubscriptionPlan record {|
     string description;
     string amount;
     string status;
+    string subscriptionID?;
 |};
 
 public type SubscriptionResponse record {|

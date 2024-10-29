@@ -163,41 +163,46 @@ service /apiMetadata on new http:Listener(9090) {
         models:ThrottlingPolicy[] throttlingPolicies = [];
 
         stream<store:SubscriptionPlanMapping, persist:Error?> planMappings = adminClient->/subscriptionplanmappings.get();
-            store:SubscriptionPlanMapping[] subscriptionPlanMappings = check from var mapping in planMappings
-                where mapping.apimetadataApiId == apiMetaData.apiId
-                select mapping;
+        store:SubscriptionPlanMapping[] subscriptionPlanMappings = check from var mapping in planMappings
+            where mapping.apimetadataApiId == apiMetaData.apiId
+            select mapping;
 
-            store:SubscriptionPlan[] subscriptionPlanSet = [];
-            foreach var subscriptionPlanMapping in subscriptionPlanMappings {
-                stream<store:SubscriptionPlan, persist:Error?> plans = adminClient->/subscriptionplans.get();
-                store:SubscriptionPlan[] subscriptionPlans = check from var plan in plans
-                    where plan.subscriptionPlanID == subscriptionPlanMapping.subscriptionplanSubscriptionPlanID
-                    select plan;
-                subscriptionPlanSet.push(subscriptionPlans[0]);
-            }
+        store:SubscriptionPlan[] subscriptionPlanSet = [];
+        foreach var subscriptionPlanMapping in subscriptionPlanMappings {
+            stream<store:SubscriptionPlan, persist:Error?> plans = adminClient->/subscriptionplans.get();
+            store:SubscriptionPlan[] subscriptionPlans = check from var plan in plans
+                where plan.subscriptionPlanID == subscriptionPlanMapping.subscriptionplanSubscriptionPlanID
+                select plan;
+            subscriptionPlanSet.push(subscriptionPlans[0]);
+        }
 
-            models:APISubscriptionPlan[] subPlans = [];
-            foreach var subscriptionPlan in subscriptionPlanSet {
-                stream<store:Subscription, persist:Error?> subcriptionSet = adminClient->/subscriptions.get();
-                store:Subscription[] subscriptions = check from var subcription in subcriptionSet
-                    where subcription.subscriptionplanSubscriptionPlanID == subscriptionPlan.subscriptionPlanID &&
+        models:APISubscriptionPlan[] subPlans = [];
+        foreach var subscriptionPlan in subscriptionPlanSet {
+            stream<store:Subscription, persist:Error?> subcriptionSet = adminClient->/subscriptions.get();
+            store:Subscription[] subscriptions = check from var subcription in subcriptionSet
+                where subcription.subscriptionplanSubscriptionPlanID == subscriptionPlan.subscriptionPlanID &&
                     subcription.apimetadataApiId == apiMetaData.apiId
-                    select subcription;
-                string ststus = "Not Subscribed";
+                select subcription;
+            string ststus = "Not Subscribed";
+            string subscriptionID = "";
 
-                if (subscriptions.length() > 0) {
-                    ststus = "Subscribed";
-                }
-
-                models:APISubscriptionPlan subPlan = {
-                    policyName: subscriptionPlan.policyName,
-                    displayName: subscriptionPlan.displayName,
-                    description: subscriptionPlan.description,
-                    amount: subscriptionPlan.amount,
-                    status: ststus
-                };
-                subPlans.push(subPlan);
+            if (subscriptions.length() > 0) {
+                ststus = "Subscribed";
+                subscriptionID = subscriptions[0].subscriptionId;
             }
+
+            models:APISubscriptionPlan subPlan = {
+                policyName: subscriptionPlan.policyName,
+                displayName: subscriptionPlan.displayName,
+                description: subscriptionPlan.description,
+                amount: subscriptionPlan.amount,
+                status: ststus
+            };
+            if (subscriptionID != "") {
+                subPlan.subscriptionID = subscriptionID;
+            }
+            subPlans.push(subPlan);
+        }
 
         foreach var policy in policies {
             models:ThrottlingPolicy policyData = {
@@ -572,17 +577,23 @@ service /apiMetadata on new http:Listener(9090) {
     }
 
     resource function post organisations/[string orgId]/[string apiId]/subscriptions(@http:Payload models:Subscription subscriptionPlan) returns models:SubscriptionResponse|error {
-        
+
         string planId = check utils:addSubscription(subscriptionPlan, orgId, apiId);
         models:SubscriptionResponse plan = {
             subscriptionId: planId,
             orgId: orgId,
             apiId: apiId,
             subscriptionPlan: subscriptionPlan.subscriptionPlan,
-            userName: subscriptionPlan.userName 
+            userName: subscriptionPlan.userName
         };
 
         return plan;
+    }
+
+    resource function delete organisations/[string orgId]/[string apiId]/subscriptions/[string subPlanId]() returns error? {
+
+        string result = check utils:deleteSubscription(subPlanId);
+
     }
 }
 
