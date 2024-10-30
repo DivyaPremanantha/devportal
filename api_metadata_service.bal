@@ -590,10 +590,13 @@ service /apiMetadata on new http:Listener(9090) {
         return plan;
     }
 
-    resource function delete organisations/[string orgId]/[string apiId]/subscriptions/[string subPlanId]() returns error? {
+    resource function delete organisations/[string orgId]/[string apiId]/subscriptions/[string subPlanId]() returns error|http:Response {
 
         string result = check utils:deleteSubscription(subPlanId);
-
+        
+        http:Response response = new;
+        response.statusCode = 204;
+        return response;
     }
 }
 
